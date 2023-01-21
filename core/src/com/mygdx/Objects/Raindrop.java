@@ -3,7 +3,6 @@ package com.mygdx.Objects;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import static com.mygdx.Util.Util.*;
 
@@ -19,12 +18,15 @@ public abstract class Raindrop {
     public Raindrop() {
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop_default_04.ogg"));
         raindropImg = new Texture(Gdx.files.internal("drop.png"));
+
     }
 
-    public boolean isCollided(Rectangle OuterEntity){
+    public boolean isCollided(Rectangle OuterEntity) throws Throwable {
          boolean isCollided = OuterEntity.overlaps(raindropCollision);
-         if (isCollided)
-             onCollideHandler();
+         if (isCollided) {
+             dropSound.play(1f);
+             dispose();
+         }
          return isCollided;
     }
 
@@ -33,13 +35,13 @@ public abstract class Raindrop {
         raindropCollision.y = (float) clamp(raindropCollision.y,0,height);
     }
 
-    private void spawn(int x,int y){
+    public void spawn(int x,int y){
         raindropCollision.x = x;
         raindropCollision.y = y;
     }
 
-    public abstract void onCollideHandler();
-
-
+    private void dispose(){
+        raindropImg.dispose();
+    }
 
 }
