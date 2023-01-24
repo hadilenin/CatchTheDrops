@@ -9,19 +9,22 @@ import static com.mygdx.Util.Util.*;
 
 
 
-public abstract class Raindrop {
+public class Raindrop {
 
     private Texture   raindropImg;
     private Rectangle raindropCollision;
     private Sound     dropSound;
 
-    public Raindrop() {
+    public Raindrop(float x,float y) {
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop_default_04.ogg"));
         raindropImg = new Texture(Gdx.files.internal("drop.png"));
-
+        raindropCollision.width = raindropImg.getWidth();
+        raindropCollision.height = raindropImg.getHeight();
+        raindropCollision.x = x;
+        raindropCollision.y = y;
     }
 
-    public boolean isCollided(Rectangle OuterEntity) throws Throwable {
+    public boolean isCollided(Rectangle OuterEntity) {
          boolean isCollided = OuterEntity.overlaps(raindropCollision);
          if (isCollided) {
              dropSound.play(1f);
@@ -30,9 +33,10 @@ public abstract class Raindrop {
          return isCollided;
     }
 
-    public void shed(Number height){
+    public float moveDrop(){
         raindropCollision.y -= 300 * Gdx.graphics.getDeltaTime();
-        raindropCollision.y = (float) clamp(raindropCollision.y,0,height);
+        raindropCollision.y =  clamp(raindropCollision.y,0f,480f);
+        return raindropCollision.y;
     }
 
     public void spawn(int x,int y){

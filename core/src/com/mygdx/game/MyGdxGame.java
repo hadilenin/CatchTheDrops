@@ -15,25 +15,29 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.mygdx.Objects.Bucket;
+import com.mygdx.Objects.Raindrop;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 
 public class MyGdxGame extends ApplicationAdapter {
 
     private Texture raindropImg;
-    private Texture bucketImg;
     private Sound dropSound;
     private Music ambientRainMusic;
     private Music backgroundMusic;
     private OrthographicCamera camera;
     private SpriteBatch batch;
-    private Rectangle bucket;
-    private Array<Rectangle> rainDrops;
+    private LinkedList<Raindrop> rainDrops;
     private long lastDropTime;
+    private Bucket bucket;
 
     @Override
     public void create() {
-        bucketImg = new Texture(Gdx.files.internal("bucket.png"));
+        bucket = new Bucket(800 / 2 - 64, 20);
+
+
         raindropImg = new Texture(Gdx.files.internal("drop.png"));
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop_default_04.ogg"));
         ambientRainMusic = Gdx.audio.newMusic(Gdx.files.internal("amb_rain_lp.wav"));
@@ -41,13 +45,8 @@ public class MyGdxGame extends ApplicationAdapter {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
         batch = new SpriteBatch();
-        bucket = new Rectangle();
-        bucket.x = 800 / 2 - 64 / 2;
-        bucket.y = 20;
-        bucket.width = 64;
-        bucket.height = 64;
 
-        rainDrops = new Array<>();
+        rainDrops = new LinkedList<>();
 
         ambientRainMusic.setLooping(true);
         ambientRainMusic.setVolume(0.5f);
@@ -63,21 +62,13 @@ public class MyGdxGame extends ApplicationAdapter {
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        if (TimeUtils.nanoTime() - lastDropTime > Math.pow(10d,9d))
+        if (TimeUtils.nanoTime() - lastDropTime > Math.pow(10d, 9d))
             spawnRaindrop();
 
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-            bucket.x += 400 * Gdx.graphics.getDeltaTime();
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
-            bucket.x -= 400 * Gdx.graphics.getDeltaTime();
-
-        if (bucket.x < 0)
-            bucket.x = 0;
-        if (bucket.x > 800 - 64)
-            bucket.x = 800 - 64;
+        bucket.moveBucket();
 
         batch.begin();
-        batch.draw(bucketImg, bucket.x, bucket.y);
+        batch.draw(bucket.getTexture(), bucket.getPosX(), bucket.getPosY());
         batch.end();
 
         shedRaindrop();
@@ -88,34 +79,21 @@ public class MyGdxGame extends ApplicationAdapter {
         dropSound.dispose();
         batch.dispose();
         ambientRainMusic.dispose();
-        bucketImg.dispose();
         raindropImg.dispose();
     }
 
     private void spawnRaindrop() {
-        Rectangle raindrop = new Rectangle();
-        raindrop.height = raindrop.width = 64;
-        raindrop.x = MathUtils.random(0, 800 - 64);
-        raindrop.y = 480;
-        rainDrops.add(raindrop);
+        rainDrops.add(new Raindrop(MathUtils.random(0, 800 - 64), 480));
         lastDropTime = TimeUtils.nanoTime();
     }
 
     private void shedRaindrop() {
-        Iterator<Rectangle> iter = rainDrops.iterator();
-        while (iter.hasNext()){
-            Rectangle raindrop = iter.next();
-            raindrop.y -= 300 * Gdx.graphics.getDeltaTime();
-            if (raindrop.y < 0)
-                iter.remove();
-            if (bucket.overlaps(raindrop)){
-                long soundID = dropSound.play();
-                dropSound.setVolume(soundID,1f);
-                iter.remove();
-            }
-            batch.begin();
-            batch.draw(raindropImg,raindrop.x,raindrop.y);
-            batch.end();
+        Iterator<Raindrop> itr = rainDrops.iterator();
+        while(itr.hasNext()){
+            Raindrop r = itr.next();
+            r.moveDrop();
+            if (r.isCollided(bucket.getCollision()))
+                itr.remove();
         }
     }
 }
