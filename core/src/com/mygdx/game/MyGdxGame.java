@@ -23,8 +23,6 @@ import java.util.LinkedList;
 
 public class MyGdxGame extends ApplicationAdapter {
 
-    private Texture raindropImg;
-    private Sound dropSound;
     private Music ambientRainMusic;
     private Music backgroundMusic;
     private OrthographicCamera camera;
@@ -36,10 +34,6 @@ public class MyGdxGame extends ApplicationAdapter {
     @Override
     public void create() {
         bucket = new Bucket(800 / 2 - 64, 20);
-
-
-        raindropImg = new Texture(Gdx.files.internal("drop.png"));
-        dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop_default_04.ogg"));
         ambientRainMusic = Gdx.audio.newMusic(Gdx.files.internal("amb_rain_lp.wav"));
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("Summer.mp3"));
         camera = new OrthographicCamera();
@@ -66,24 +60,18 @@ public class MyGdxGame extends ApplicationAdapter {
             spawnRaindrop();
 
         bucket.moveBucket();
-
-        batch.begin();
-        batch.draw(bucket.getTexture(), bucket.getPosX(), bucket.getPosY());
-        batch.end();
-
         shedRaindrop();
+        render(bucket.getTexture(),bucket.getPosX(),bucket.getPosY());
     }
 
     @Override
     public void dispose() {
-        dropSound.dispose();
         batch.dispose();
         ambientRainMusic.dispose();
-        raindropImg.dispose();
     }
 
     private void spawnRaindrop() {
-        rainDrops.add(new Raindrop(MathUtils.random(0, 800 - 64), 480));
+        rainDrops.add(new Raindrop(MathUtils.random(0, 800 - 64), 480 - 64));
         lastDropTime = TimeUtils.nanoTime();
     }
 
@@ -91,9 +79,16 @@ public class MyGdxGame extends ApplicationAdapter {
         Iterator<Raindrop> itr = rainDrops.iterator();
         while(itr.hasNext()){
             Raindrop r = itr.next();
-            r.moveDrop();
-            if (r.isCollided(bucket.getCollision()))
+            float verticalPos = r.moveDrop();
+            render(r.getTexture(),r.getX(),r.getY());
+            if (r.isCollided(bucket.getCollision()) || verticalPos == 0)
                 itr.remove();
         }
+    }
+
+    private void render(Texture texture, float x, float y){
+        batch.begin();
+        batch.draw(texture,x,y);
+        batch.end();
     }
 }

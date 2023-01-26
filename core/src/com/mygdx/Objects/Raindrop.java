@@ -18,6 +18,7 @@ public class Raindrop {
     public Raindrop(float x,float y) {
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop_default_04.ogg"));
         raindropImg = new Texture(Gdx.files.internal("drop.png"));
+        raindropCollision = new Rectangle();
         raindropCollision.width = raindropImg.getWidth();
         raindropCollision.height = raindropImg.getHeight();
         raindropCollision.x = x;
@@ -46,6 +47,18 @@ public class Raindrop {
 
     private void dispose(){
         raindropImg.dispose();
+    }
+
+    public Texture getTexture(){
+        return raindropImg;
+    }
+
+    public float getX(){
+        return raindropCollision.x;
+    }
+
+    public float getY(){
+        return raindropCollision.y;
     }
 
 }
